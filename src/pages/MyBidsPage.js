@@ -45,9 +45,7 @@ const MyBidsPage = () => {
     if (error) {
         return (
             <div>
-                <Header />
                 <main>{error}</main>
-                <Footer />
             </div>
         );
     }

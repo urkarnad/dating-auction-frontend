@@ -1,36 +1,82 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import '../styles/Header.css';
 
 const Header = () => {
-    const { isAuthenticated, logout } = useAuth();
-    const navigate = useNavigate();
+    const { isAuthenticated, logout, user } = useAuth();
+    const location = useLocation();
+
+    const isActive = (path) => location.pathname === path;
 
     const handleLogout = async () => {
         await logout();
-        navigate('/login');
+        window.location.href = '/login';
     };
 
-    if (!isAuthenticated) {
-        return (
-            <header>
-                <nav>
-                    <Link to="/rules">Rules</Link>
-                </nav>
-            </header>
-        );
-    }
-
     return (
-        <header>
-            <nav>
-                <Link to="/">Auction</Link>
-                <Link to="/mylot">My Lot</Link>
-                <Link to="/mybids">My Bids</Link>
-                <Link to="/profile">Profile</Link>
-                <Link to="/rules">Rules</Link>
-                <button onClick={handleLogout}>Logout</button>
-            </nav>
+        <header className="header">
+            <div className="header-container">
+                <Link to="/" className="logo">
+                    <span className="logo-icon">✚</span>
+                    <span className="logo-text">АУКЦІОН ПОБАЧЕНЬ</span>
+                </Link>
+
+                <nav className="nav">
+                    {isAuthenticated ? (
+                        <>
+                            <Link
+                                to="/"
+                                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+                            >
+                                аукціон
+                            </Link>
+                            <Link
+                                to="/mylot"
+                                className={`nav-link ${isActive('/mylot') ? 'active' : ''}`}
+                            >
+                                мій лот
+                            </Link>
+                            <Link
+                                to="/mybids"
+                                className={`nav-link ${isActive('/mybids') ? 'active' : ''}`}
+                            >
+                                мої ставки
+                            </Link>
+                            <Link
+                                to="/profile"
+                                className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                            >
+                                профіль
+                            </Link>
+                            <Link
+                                to="/rules"
+                                className={`nav-link ${isActive('/rules') ? 'active' : ''}`}
+                            >
+                                правила
+                            </Link>
+                            <button onClick={handleLogout} className="nav-link logout-btn">
+                                вихід
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to="/rules"
+                                className={`nav-link ${isActive('/rules') ? 'active' : ''}`}
+                            >
+                                правила
+                            </Link>
+                            <Link
+                                to="/contacts"
+                                className={`nav-link ${isActive('/contacts') ? 'active' : ''}`}
+                            >
+                                зворотній зв'язок
+                            </Link>
+                        </>
+                    )}
+                </nav>
+            </div>
         </header>
     );
 };

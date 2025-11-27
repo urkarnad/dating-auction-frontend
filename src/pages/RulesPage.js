@@ -6,7 +6,6 @@ import Footer from '../components/Footer';
 const RulesPage = () => {
     return (
         <div>
-            <Header />
             <main>
                 <h1>Правила аукціону</h1>
 
@@ -75,7 +74,6 @@ const RulesPage = () => {
                     </p>
                 </section>
             </main>
-            <Footer />
         </div>
     );
 };

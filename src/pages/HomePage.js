@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getLots } from '../api/lots';
 import { getFaculties, getRoles, getYears, getGenders } from '../api/filters';
 import LotCard from '../components/LotCard';
+import '../styles/HomePage.css';
 
 const HomePage = () => {
     const [lots, setLots] = useState([]);
@@ -101,98 +102,146 @@ const HomePage = () => {
     };
 
     return (
-        <div>
+        <div className="homepage">
             <main>
-                <h1>Auction Lots</h1>
+                <div className="filters-section">
+                    <h2 className="filters-title">ФІЛЬТРИ:</h2>
 
-                <form onSubmit={handleSearch}>
-                    <input
-                        type="text"
-                        placeholder="пошук по імені або прізвищу"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <button type="submit">шукати</button>
-                </form>
+                    <div className="filters-grid">
+                        <select
+                            className="filter-select"
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                        >
+                            <option value="">сортування</option>
+                            <option value="price_asc">ціна ↑</option>
+                            <option value="price_desc">ціна ↓</option>
+                            <option value="created_at_asc">старі</option>
+                            <option value="created_at_desc">нові</option>
+                        </select>
 
-                <div>
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                        <option value="">сортування</option>
-                        <option value="price_asc">ціна ↑</option>
-                        <option value="price_desc">ціна ↓</option>
-                        <option value="created_at_asc">старі</option>
-                        <option value="created_at_desc">нові</option>
-                    </select>
+                        <select
+                            className="filter-select"
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            disabled={filtersLoading}
+                        >
+                            <option value="">стать</option>
+                            {genders.map((gen) => (
+                                <option key={gen.id} value={gen.id}>{gen.gender}</option>
+                            ))}
+                        </select>
 
-                    <select value={faculty} onChange={(e) => setFaculty(e.target.value)} disabled={filtersLoading}>
-                        <option value="">всі факультети</option>
-                        {faculties.map((fac) => (
-                            <option key={fac.id} value={fac.id}>{fac.name}</option>
-                        ))}
-                    </select>
+                        <label className="photo-checkbox">
+                            <input
+                                type="checkbox"
+                                checked={hasPhoto}
+                                onChange={(e) => setHasPhoto(e.target.checked)}
+                            />
+                            <span>фотографія</span>
+                        </label>
 
-                    <select value={gender} onChange={(e) => setGender(e.target.value)} disabled={filtersLoading}>
-                        <option value="">всі</option>
-                        {genders.map((gen) => (
-                            <option key={gen.id} value={gen.id}>{gen.gender}</option>
-                        ))}
-                    </select>
+                        <select
+                            className="filter-select"
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            disabled={filtersLoading}
+                        >
+                            <option value="">роль</option>
+                            {roles.map((r) => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                        </select>
 
-                    <select value={year} onChange={(e) => setYear(e.target.value)} disabled={filtersLoading}>
-                        <option value="">всі курси</option>
-                        {years.map((yr) => (
-                            <option key={yr.id} value={yr.id}>{yr.year}</option>
-                        ))}
-                    </select>
+                        <select
+                            className="filter-select"
+                            value={faculty}
+                            onChange={(e) => setFaculty(e.target.value)}
+                            disabled={filtersLoading}
+                        >
+                            <option value="">факультет</option>
+                            {faculties.map((fac) => (
+                                <option key={fac.id} value={fac.id}>{fac.name}</option>
+                            ))}
+                        </select>
 
-                    <select value={role} onChange={(e) => setRole(e.target.value)} disabled={filtersLoading}>
-                        <option value="">всі ролі</option>
-                        {roles.map((r) => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
-                        ))}
-                    </select>
+                        <select
+                            className="filter-select"
+                            value={year}
+                            onChange={(e) => setYear(e.target.value)}
+                            disabled={filtersLoading}
+                        >
+                            <option value="">курс</option>
+                            {years.map((yr) => (
+                                <option key={yr.id} value={yr.id}>{yr.year}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
 
-                    <label>
+                <div className="search-section">
+                    <h2 className="search-title">ПОШУК:</h2>
+                    <form onSubmit={handleSearch} className="search-form">
                         <input
-                            type="checkbox"
-                            checked={hasPhoto}
-                            onChange={(e) => setHasPhoto(e.target.checked)}
+                            type="text"
+                            className="search-input"
+                            placeholder="введіть ім'я та прізвище..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
                         />
-                        Тільки з фото
-                    </label>
+                        <button type="submit" className="search-btn">
+                            🔍
+                        </button>
+                    </form>
                 </div>
 
                 {loading ? (
-                    <p>завантаження...</p>
+                    <div className="loading">завантаження...</div>
                 ) : error ? (
-                    <p>{error}</p>
+                    <div className="error">{error}</div>
                 ) : lots.length === 0 ? (
-                    <p>лоти не знайдено</p>
+                    <div className="no-results">лоти не знайдено</div>
                 ) : (
-                    <div>
-                        <p>знайдено лотів: {totalCount}</p>
-                        <div>
+                    <>
+                        <div className="results-info">
+                            знайдено лотів: <strong>{totalCount}</strong>
+                        </div>
+
+                        <div className="lots-grid">
                             {lots.map((lot) => (
                                 <LotCard key={lot.id} lot={lot} />
                             ))}
                         </div>
-                    </div>
-                )}
 
-                {totalPages > 1 && (
-                    <div>
-                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                            попередня
-                        </button>
-                        <span> сторінка {currentPage} з {totalPages} </span>
-                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                            наступна
-                        </button>
-                    </div>
+                        {totalPages > 1 && (
+                            <div className="pagination">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="pagination-btn"
+                                >
+                                    ← попередня
+                                </button>
+
+                                <span className="pagination-info">
+                                    сторінка <strong>{currentPage}</strong> з <strong>{totalPages}</strong>
+                                </span>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="pagination-btn"
+                                >
+                                    наступна →
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>
     );
 };
+
 
 export default HomePage;

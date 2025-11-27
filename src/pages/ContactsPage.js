@@ -50,7 +50,6 @@ const ContactsPage = () => {
 
     return (
         <div>
-            <Header />
             <main>
                 <h1>Зворотній зв'язок</h1>
 
@@ -112,7 +111,6 @@ const ContactsPage = () => {
                     <p>Telegram: @dating_auction_support</p>
                 </section>
             </main>
-            <Footer />
         </div>
     );
 };
