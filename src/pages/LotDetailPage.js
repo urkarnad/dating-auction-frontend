@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLotById, addCommentOrBid } from '../api/lots';
 import Header from '../components/Header';
@@ -14,11 +14,7 @@ const LotDetailPage = () => {
     const [text, setText] = useState('');
     const [amount, setAmount] = useState('');
 
-    useEffect(() => {
-        fetchLot();
-    }, [id]);
-
-    const fetchLot = async () => {
+    const fetchLot = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getLotById(id);
@@ -29,7 +25,12 @@ const LotDetailPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+
+    useEffect(() => {
+        fetchLot();
+    }, [fetchLot]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -104,7 +105,10 @@ const LotDetailPage = () => {
 
                 {lot.photos && lot.photos.length > 0 ? (
                     <div>
-                        <img src={lot.photos[currentPhotoIndex]} alt={`${lot.first_name} ${lot.last_name}`} />
+                        <img
+                            src={lot.photos[currentPhotoIndex]}
+                            alt={`${lot.first_name} ${lot.last_name}`}
+                        />
                         {lot.photos.length > 1 && (
                             <div>
                                 <button onClick={() => handlePhotoNav('prev')}>←</button>
@@ -138,6 +142,7 @@ const LotDetailPage = () => {
                     <div>
                         <h3>Музика</h3>
                         <iframe
+                            title="soundcloud-player"
                             width="100%"
                             height="166"
                             scrolling="no"
@@ -148,7 +153,6 @@ const LotDetailPage = () => {
                     </div>
                 )}
 
-                {/* Форма коментаря/ставки */}
                 <div>
                     <h3>Залишити коментар або зробити ставку</h3>
                     <form onSubmit={handleSubmit}>

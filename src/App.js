@@ -13,6 +13,8 @@ import ComplaintsPage from './pages/ComplaintsPage';
 import RulesPage from './pages/RulesPage';
 import ContactsPage from './pages/ContactsPage';
 import Header from "./components/Header";
+import Footer from "./components/Footer";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 const PrivateRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -100,8 +102,11 @@ function App() {
                         }
                     />
 
+                    <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
+                <Footer />
             </Router>
         </AuthProvider>
     );

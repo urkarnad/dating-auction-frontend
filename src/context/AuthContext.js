@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { getUserProfile, logout as apiLogout } from '../api/user';
+import { getUserProfile, logoutUser as apiLogout } from '../api/user';
 
 const AuthContext = createContext();
 
@@ -12,14 +12,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState({
-        id: 1,
-        email: 'test@example.com',
-        first_name: 'Test',
-        last_name: 'User'
-    }); // Фейковий користувач для тестування
-    const [loading, setLoading] = useState(false); // false щоб не чекати
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // true = авторизовані
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         checkAuth();

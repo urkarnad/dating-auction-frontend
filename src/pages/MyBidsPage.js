@@ -54,9 +54,8 @@ const MyBidsPage = () => {
 
     return (
         <div>
-            <Header />
             <main>
-                <h1>Мої ставки</h1>
+                <h1>мої ставки</h1>
 
                 <div>
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -93,7 +92,6 @@ const MyBidsPage = () => {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

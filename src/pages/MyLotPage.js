@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getMyLot } from '../api/user';
 import { createLot, partialUpdateLot, uploadLotPhoto } from '../api/lots';
+import { getFaculties, getMajors, getRoles, getYears, getGenders } from '../api/filters';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -15,20 +16,32 @@ const MyLotPage = () => {
         faculty: '',
         major: '',
         year: '',
-        gender: 'M',
+        gender: '',
         description: '',
         price: 0,
         soundcloud_url: '',
         role: '',
     });
 
+    const [faculties, setFaculties] = useState([]);
+    const [majors, setMajors] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [years, setYears] = useState([]);
+    const [genders, setGenders] = useState([]);
+    const [filtersLoading, setFiltersLoading] = useState(true);
+
     const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
-    useEffect(() => {
-        fetchMyLot();
+    const fetchMajors = useCallback(async (facultyId) => {
+        try {
+            const data = await getMajors(facultyId);
+            setMajors(data);
+        } catch (err) {
+            console.error('помилка завантаження спеціальностей:', err);
+        }
     }, []);
 
-    const fetchMyLot = async () => {
+    const fetchMyLot = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getMyLot();
@@ -39,20 +52,58 @@ const MyLotPage = () => {
                 faculty: data.faculty || '',
                 major: data.major || '',
                 year: data.year || '',
-                gender: data.gender || 'M',
+                gender: data.gender || '',
                 description: data.description || '',
                 price: data.price || 0,
                 soundcloud_url: data.soundcloud_url || '',
                 role: data.role || '',
             });
+
+            if (data.faculty) {
+                fetchMajors(data.faculty);
+            }
         } catch (err) {
             if (err.response?.status !== 404) {
-                console.error('Помилка завантаження лоту:', err);
+                console.error('помилка завантаження лоту:', err);
             }
         } finally {
             setLoading(false);
         }
-    };
+    }, [fetchMajors]);
+
+    const fetchFilterOptions = useCallback(async () => {
+        setFiltersLoading(true);
+        try {
+            const [facultiesData, rolesData, yearsData, gendersData] = await Promise.all([
+                getFaculties(),
+                getRoles(),
+                getYears(),
+                getGenders()
+            ]);
+
+            setFaculties(facultiesData);
+            setRoles(rolesData);
+            setYears(yearsData);
+            setGenders(gendersData);
+        } catch (err) {
+            console.error('помилка завантаження фільтрів:', err);
+        } finally {
+            setFiltersLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchFilterOptions();
+        fetchMyLot();
+    }, [fetchFilterOptions, fetchMyLot]);
+
+    useEffect(() => {
+        if (formData.faculty) {
+            fetchMajors(formData.faculty);
+        } else {
+            setMajors([]);
+        }
+    }, [formData.faculty, fetchMajors]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -74,10 +125,10 @@ const MyLotPage = () => {
 
             await fetchMyLot();
             setIsEditing(false);
-            alert('Лот успішно збережено!');
+            alert('лот успішно збережено!');
         } catch (err) {
-            console.error('Помилка збереження лоту:', err);
-            alert(err.response?.data?.detail || 'Помилка збереження. Спробуйте ще раз.');
+            console.error('помилка збереження лоту:', err);
+            alert(err.response?.data?.detail || 'помилка збереження. спробуйте ще раз.');
         }
     };
 
@@ -86,7 +137,7 @@ const MyLotPage = () => {
         if (files.length === 0) return;
 
         if (!lot) {
-            alert('Спочатку створіть лот');
+            alert('спочатку створіть лот');
             return;
         }
 
@@ -98,49 +149,46 @@ const MyLotPage = () => {
                 await uploadLotPhoto(formData);
             }
             await fetchMyLot();
-            alert('Фото успішно завантажено!');
+            alert('фото успішно завантажено!');
         } catch (err) {
-            console.error('Помилка завантаження фото:', err);
-            alert('Помилка завантаження фото');
+            console.error('помилка завантаження фото:', err);
+            alert('помилка завантаження фото');
         } finally {
             setUploadingPhotos(false);
         }
     };
 
-    if (loading) {
+    if (loading || filtersLoading) {
         return (
             <div>
-                <Header />
-                <main>Завантаження...</main>
-                <Footer />
+                <main>завантаження...</main>
             </div>
         );
     }
 
     return (
         <div>
-            <Header />
             <main>
-                <h1>Мій лот</h1>
+                <h1>мій лот</h1>
 
                 {!lot && !isEditing ? (
                     <div>
-                        <p>У вас ще немає лоту</p>
-                        <button onClick={() => setIsEditing(true)}>Створити лот</button>
+                        <p>у вас ще немає лоту</p>
+                        <button onClick={() => setIsEditing(true)}>створити лот</button>
                     </div>
                 ) : (
                     <div>
                         {!isEditing ? (
                             <div>
-                                <h2>Лот #{lot.lot_number || lot.id}</h2>
+                                <h2>лот #{lot.lot_number || lot.id}</h2>
                                 <p>{lot.first_name} {lot.last_name}</p>
-                                <p>Факультет: {lot.faculty}</p>
-                                {lot.major && <p>Спеціальність: {lot.major}</p>}
-                                <p>Курс: {lot.year}</p>
-                                <p>Стать: {lot.gender === 'M' ? 'Чоловік' : lot.gender === 'F' ? 'Жінка' : 'Інше'}</p>
-                                <p>Поточна ставка: {lot.last_bet || lot.price} грн</p>
-                                {lot.role && <p>Роль: {lot.role}</p>}
-                                {lot.description && <p>Опис: {lot.description}</p>}
+                                <p>факультет: {faculties.find(f => f.id === lot.faculty)?.name}</p>
+                                {lot.major && <p>Спеціальність: {majors.find(m => m.id === lot.major)?.name}</p>}
+                                <p>курс: {years.find(y => y.id === lot.year)?.year}</p>
+                                <p>стать: {genders.find(g => g.id === lot.gender)?.gender}</p>
+                                <p>поточна ставка: {lot.last_bet || lot.price} грн</p>
+                                {lot.role && <p>роль: {roles.find(r => r.id === lot.role)?.name}</p>}
+                                {lot.description && <p>опис: {lot.description}</p>}
 
                                 {lot.soundcloud_url && (
                                     <div>
@@ -148,20 +196,24 @@ const MyLotPage = () => {
                                     </div>
                                 )}
 
-                                {/* Фото */}
                                 <div>
                                     <h3>Фотографії</h3>
                                     <div>
                                         {lot.photos && lot.photos.length > 0 ? (
                                             lot.photos.map((photo, index) => (
                                                 <div key={index}>
-                                                    <img src={photo} alt={`Photo ${index + 1}`} style={{ width: '200px' }} />
+                                                    <img
+                                                        src={photo}
+                                                        alt={`Зображення ${index + 1}`}
+                                                        style={{ width: '200px' }}
+                                                    />
                                                 </div>
                                             ))
                                         ) : (
                                             <p>Фото відсутні</p>
                                         )}
                                     </div>
+
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -194,43 +246,32 @@ const MyLotPage = () => {
                                     required
                                 />
 
-                                <input
-                                    type="text"
-                                    name="faculty"
-                                    placeholder="Факультет"
-                                    value={formData.faculty}
-                                    onChange={handleInputChange}
-                                    required
-                                />
+                                <select name="faculty" value={formData.faculty} onChange={handleInputChange} required>
+                                    <option value="">Оберіть факультет</option>
+                                    {faculties.map((fac) => (
+                                        <option key={fac.id} value={fac.id}>{fac.name}</option>
+                                    ))}
+                                </select>
 
-                                <input
-                                    type="text"
-                                    name="major"
-                                    placeholder="Спеціальність"
-                                    value={formData.major}
-                                    onChange={handleInputChange}
-                                />
+                                <select name="major" value={formData.major} onChange={handleInputChange} disabled={!formData.faculty}>
+                                    <option value="">Оберіть спеціальність</option>
+                                    {majors.map((maj) => (
+                                        <option key={maj.id} value={maj.id}>{maj.name}</option>
+                                    ))}
+                                </select>
 
-                                <input
-                                    type="number"
-                                    name="year"
-                                    placeholder="Курс"
-                                    value={formData.year}
-                                    onChange={handleInputChange}
-                                    min="1"
-                                    max="5"
-                                    required
-                                />
+                                <select name="year" value={formData.year} onChange={handleInputChange} required>
+                                    <option value="">Оберіть курс</option>
+                                    {years.map((yr) => (
+                                        <option key={yr.id} value={yr.id}>{yr.year}</option>
+                                    ))}
+                                </select>
 
-                                <select
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleInputChange}
-                                    required
-                                >
-                                    <option value="M">Чоловік</option>
-                                    <option value="F">Жінка</option>
-                                    <option value="O">Інше</option>
+                                <select name="gender" value={formData.gender} onChange={handleInputChange} required>
+                                    <option value="">Оберіть стать</option>
+                                    {genders.map((gen) => (
+                                        <option key={gen.id} value={gen.id}>{gen.gender}</option>
+                                    ))}
                                 </select>
 
                                 <textarea
@@ -250,18 +291,17 @@ const MyLotPage = () => {
                                     min="0"
                                 />
 
-                                <input
-                                    type="text"
-                                    name="role"
-                                    placeholder="Роль (необов'язково)"
-                                    value={formData.role}
-                                    onChange={handleInputChange}
-                                />
+                                <select name="role" value={formData.role} onChange={handleInputChange}>
+                                    <option value="">Оберіть роль (необов'язково)</option>
+                                    {roles.map((r) => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                                </select>
 
                                 <input
                                     type="url"
                                     name="soundcloud_url"
-                                    placeholder="SoundCloud URL (необов'язково)"
+                                    placeholder="SoundCloud URL"
                                     value={formData.soundcloud_url}
                                     onChange={handleInputChange}
                                 />
@@ -275,7 +315,6 @@ const MyLotPage = () => {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getUserProfile, updateUserProfile } from '../api/user';
+import { getFaculties, getMajors, getRoles, getYears, getGenders } from '../api/filters';
 import { useAuth } from '../context/AuthContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 
 const ProfilePage = () => {
     const { user, updateUser } = useAuth();
@@ -10,24 +9,89 @@ const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
 
     const [formData, setFormData] = useState({
-        email: '',
         first_name: '',
         last_name: '',
-        phone: '',
+        faculty: '',
+        major: '',
+        year: '',
+        gender: '',
+        role: '',
+        facebook: '',
         instagram: '',
+        discord_id: '',
+        soundcloud: '',
     });
+
+    const [faculties, setFaculties] = useState([]);
+    const [majors, setMajors] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [years, setYears] = useState([]);
+    const [genders, setGenders] = useState([]);
+    const [filtersLoading, setFiltersLoading] = useState(true);
+
+    useEffect(() => {
+        fetchFilterOptions();
+    }, []);
 
     useEffect(() => {
         if (user) {
             setFormData({
-                email: user.email || '',
                 first_name: user.first_name || '',
                 last_name: user.last_name || '',
-                phone: user.phone || '',
+                faculty: user.faculty || '',
+                major: user.major || '',
+                year: user.year || '',
+                gender: user.gender || '',
+                role: user.role || '',
+                facebook: user.facebook || '',
                 instagram: user.instagram || '',
+                discord_id: user.discord_id || '',
+                soundcloud: user.soundcloud || '',
             });
+
+            if (user.faculty) {
+                fetchMajors(user.faculty);
+            }
         }
     }, [user]);
+
+    useEffect(() => {
+        if (formData.faculty) {
+            fetchMajors(formData.faculty);
+        } else {
+            setMajors([]);
+        }
+    }, [formData.faculty]);
+
+    const fetchFilterOptions = async () => {
+        setFiltersLoading(true);
+        try {
+            const [facultiesData, rolesData, yearsData, gendersData] = await Promise.all([
+                getFaculties(),
+                getRoles(),
+                getYears(),
+                getGenders()
+            ]);
+
+            setFaculties(facultiesData);
+            setRoles(rolesData);
+            setYears(yearsData);
+            setGenders(gendersData);
+        } catch (err) {
+            console.error('Помилка завантаження фільтрів:', err);
+        } finally {
+            setFiltersLoading(false);
+        }
+    };
+
+    const fetchMajors = async (facultyId) => {
+        try {
+            const data = await getMajors(facultyId);
+            setMajors(data);
+        } catch (err) {
+            console.error('Помилка завантаження спеціальностей:', err);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -45,45 +109,50 @@ const ProfilePage = () => {
             const updatedUser = await updateUserProfile(formData);
             updateUser(updatedUser);
             setIsEditing(false);
-            alert('Профіль успішно оновлено!');
+            alert('профіль успішно оновлено!');
         } catch (err) {
-            console.error('Помилка оновлення профілю:', err);
-            alert('Помилка оновлення профілю');
+            console.error('помилка оновлення профілю:', err);
+            alert('помилка оновлення профілю');
         } finally {
             setLoading(false);
         }
     };
 
+    if (filtersLoading) {
+        return (
+            <div>
+                <main>завантаження...</main>
+            </div>
+        );
+    }
+
     return (
         <div>
-            <Header />
             <main>
                 <h1>Мій профіль</h1>
 
                 {!isEditing ? (
                     <div>
-                        <p><strong>Email:</strong> {user?.email}</p>
-                        <p><strong>Ім'я:</strong> {user?.first_name}</p>
-                        <p><strong>Прізвище:</strong> {user?.last_name}</p>
-                        <p><strong>Телефон:</strong> {user?.phone || 'Не вказано'}</p>
-                        <p><strong>Instagram:</strong> {user?.instagram || 'Не вказано'}</p>
+                        <p><strong>email:</strong> {user?.email}</p>
+                        <p><strong>ім'я:</strong> {user?.first_name}</p>
+                        <p><strong>прізвище:</strong> {user?.last_name}</p>
+                        <p><strong>факультет:</strong> {faculties.find(f => f.id === user?.faculty)?.name || 'Не вказано'}</p>
+                        <p><strong>спеціальність:</strong> {majors.find(m => m.id === user?.major)?.name || 'Не вказано'}</p>
+                        <p><strong>курс:</strong> {years.find(y => y.id === user?.year)?.year || 'Не вказано'}</p>
+                        <p><strong>стать:</strong> {genders.find(g => g.id === user?.gender)?.gender || 'Не вказано'}</p>
+                        <p><strong>роль:</strong> {roles.find(r => r.id === user?.role)?.name || 'Не вказано'}</p>
+                        <p><strong>facebook:</strong> {user?.facebook || 'Не вказано'}</p>
+                        <p><strong>instagram:</strong> {user?.instagram || 'Не вказано'}</p>
+                        <p><strong>discord:</strong> {user?.discord_id || 'Не вказано'}</p>
+                        <p><strong>soundcloud:</strong> {user?.soundcloud || 'Не вказано'}</p>
                         <button onClick={() => setIsEditing(true)}>Редагувати</button>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
                         <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled
-                        />
-
-                        <input
                             type="text"
                             name="first_name"
-                            placeholder="Ім'я"
+                            placeholder="ім'я"
                             value={formData.first_name}
                             onChange={handleInputChange}
                             required
@@ -92,30 +161,112 @@ const ProfilePage = () => {
                         <input
                             type="text"
                             name="last_name"
-                            placeholder="Прізвище"
+                            placeholder="прізвище"
                             value={formData.last_name}
                             onChange={handleInputChange}
                             required
                         />
 
+                        <select
+                            name="faculty"
+                            value={formData.faculty}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">оберіть факультет</option>
+                            {faculties.map((fac) => (
+                                <option key={fac.id} value={fac.id}>
+                                    {fac.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            name="major"
+                            value={formData.major}
+                            onChange={handleInputChange}
+                            disabled={!formData.faculty}
+                        >
+                            <option value="">оберіть спеціальність</option>
+                            {majors.map((maj) => (
+                                <option key={maj.id} value={maj.id}>
+                                    {maj.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            name="year"
+                            value={formData.year}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">оберіть курс</option>
+                            {years.map((yr) => (
+                                <option key={yr.id} value={yr.id}>
+                                    {yr.year}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">оберіть стать</option>
+                            {genders.map((gen) => (
+                                <option key={gen.id} value={gen.id}>
+                                    {gen.gender}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            name="role"
+                            value={formData.role}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">оберіть роль</option>
+                            {roles.map((r) => (
+                                <option key={r.id} value={r.id}>
+                                    {r.name}
+                                </option>
+                            ))}
+                        </select>
+
                         <input
-                            type="tel"
-                            name="phone"
-                            placeholder="Телефон"
-                            value={formData.phone}
+                            type="url"
+                            name="facebook"
+                            placeholder="afcebook URL"
+                            value={formData.facebook}
+                            onChange={handleInputChange}
+                        />
+
+                        <input
+                            type="url"
+                            name="instagram"
+                            placeholder="instagram URL"
+                            value={formData.instagram}
                             onChange={handleInputChange}
                         />
 
                         <input
                             type="text"
-                            name="instagram"
-                            placeholder="Instagram @username"
-                            value={formData.instagram}
+                            name="discord_id"
+                            placeholder="discord ID"
+                            value={formData.discord_id}
+                            onChange={handleInputChange}
+                        />
+
+                        <input
+                            type="url"
+                            name="soundcloud"
+                            placeholder="soundcloud URL"
+                            value={formData.soundcloud}
                             onChange={handleInputChange}
                         />
 
                         <button type="submit" disabled={loading}>
-                            {loading ? 'Збереження...' : 'Зберегти'}
+                            {loading ? 'збереження...' : 'зберегти'}
                         </button>
                         <button type="button" onClick={() => setIsEditing(false)}>
                             Скасувати
@@ -123,7 +274,6 @@ const ProfilePage = () => {
                     </form>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

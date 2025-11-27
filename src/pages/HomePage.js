@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getLots } from '../api/lots';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { getFaculties, getRoles, getYears, getGenders } from '../api/filters';
 import LotCard from '../components/LotCard';
 
 const HomePage = () => {
@@ -9,7 +8,6 @@ const HomePage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Фільтри і пошук
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [faculty, setFaculty] = useState('');
@@ -18,14 +16,43 @@ const HomePage = () => {
     const [hasPhoto, setHasPhoto] = useState(false);
     const [role, setRole] = useState('');
 
-    useEffect(() => {
-        fetchLots();
-    }, [sortBy, faculty, gender, year, hasPhoto, role]);
+    const [faculties, setFaculties] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [years, setYears] = useState([]);
+    const [genders, setGenders] = useState([]);
+    const [filtersLoading, setFiltersLoading] = useState(true);
 
-    const fetchLots = async () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+
+    const fetchFilterOptions = useCallback(async () => {
+        setFiltersLoading(true);
+        try {
+            const [facultiesData, rolesData, yearsData, gendersData] = await Promise.all([
+                getFaculties(),
+                getRoles(),
+                getYears(),
+                getGenders()
+            ]);
+
+            setFaculties(facultiesData);
+            setRoles(rolesData);
+            setYears(yearsData);
+            setGenders(gendersData);
+        } catch (err) {
+            console.error('Помилка завантаження фільтрів:', err);
+        } finally {
+            setFiltersLoading(false);
+        }
+    }, []);
+
+    const fetchLots = useCallback(async () => {
         setLoading(true);
         try {
-            const params = {};
+            const params = {
+                page: currentPage,
+            };
 
             if (search) params.search = search;
             if (sortBy) params.sort = sortBy;
@@ -36,74 +63,94 @@ const HomePage = () => {
             if (role) params.role = role;
 
             const data = await getLots(params);
-            setLots(data);
+
+            if (data.results) {
+                setLots(data.results);
+                setTotalCount(data.count);
+                setTotalPages(Math.ceil(data.count / (data.page_size || 10)));
+            } else {
+                setLots(data);
+            }
         } catch (err) {
             setError('Помилка завантаження лотів');
             console.error(err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, search, sortBy, faculty, gender, year, hasPhoto, role]);
+
+    useEffect(() => {
+        fetchFilterOptions();
+    }, [fetchFilterOptions]);
+
+    useEffect(() => {
+        fetchLots();
+    }, [fetchLots]);
 
     const handleSearch = (e) => {
         e.preventDefault();
+        setCurrentPage(1);
         fetchLots();
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+            window.scrollTo(0, 0);
+        }
     };
 
     return (
         <div>
-            <Header />
             <main>
                 <h1>Auction Lots</h1>
 
                 <form onSubmit={handleSearch}>
                     <input
                         type="text"
-                        placeholder="Пошук по імені або прізвищу"
+                        placeholder="пошук по імені або прізвищу"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
-                    <button type="submit">Шукати</button>
+                    <button type="submit">шукати</button>
                 </form>
 
                 <div>
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                        <option value="">Сортування</option>
-                        <option value="price_asc">Ціна (за зростанням)</option>
-                        <option value="price_desc">Ціна (за спаданням)</option>
-                        <option value="created_at_asc">Дата (старі спочатку)</option>
-                        <option value="created_at_desc">Дата (нові спочатку)</option>
+                        <option value="">сортування</option>
+                        <option value="price_asc">ціна ↑</option>
+                        <option value="price_desc">ціна ↓</option>
+                        <option value="created_at_asc">старі</option>
+                        <option value="created_at_desc">нові</option>
                     </select>
 
-                    <input
-                        type="text"
-                        placeholder="Факультет"
-                        value={faculty}
-                        onChange={(e) => setFaculty(e.target.value)}
-                    />
-
-                    <select value={gender} onChange={(e) => setGender(e.target.value)}>
-                        <option value="">Всі</option>
-                        <option value="M">Чоловіки</option>
-                        <option value="F">Жінки</option>
-                        <option value="O">Інше</option>
+                    <select value={faculty} onChange={(e) => setFaculty(e.target.value)} disabled={filtersLoading}>
+                        <option value="">всі факультети</option>
+                        {faculties.map((fac) => (
+                            <option key={fac.id} value={fac.id}>{fac.name}</option>
+                        ))}
                     </select>
 
-                    <input
-                        type="number"
-                        placeholder="Курс (1-5)"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                        min="1"
-                        max="5"
-                    />
+                    <select value={gender} onChange={(e) => setGender(e.target.value)} disabled={filtersLoading}>
+                        <option value="">всі</option>
+                        {genders.map((gen) => (
+                            <option key={gen.id} value={gen.id}>{gen.gender}</option>
+                        ))}
+                    </select>
 
-                    <input
-                        type="text"
-                        placeholder="Роль"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                    />
+                    <select value={year} onChange={(e) => setYear(e.target.value)} disabled={filtersLoading}>
+                        <option value="">всі курси</option>
+                        {years.map((yr) => (
+                            <option key={yr.id} value={yr.id}>{yr.year}</option>
+                        ))}
+                    </select>
+
+                    <select value={role} onChange={(e) => setRole(e.target.value)} disabled={filtersLoading}>
+                        <option value="">всі ролі</option>
+                        {roles.map((r) => (
+                            <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                    </select>
 
                     <label>
                         <input
@@ -116,20 +163,34 @@ const HomePage = () => {
                 </div>
 
                 {loading ? (
-                    <p>Завантаження...</p>
+                    <p>завантаження...</p>
                 ) : error ? (
                     <p>{error}</p>
                 ) : lots.length === 0 ? (
-                    <p>Лоти не знайдено</p>
+                    <p>лоти не знайдено</p>
                 ) : (
                     <div>
-                        {lots.map((lot) => (
-                            <LotCard key={lot.id} lot={lot} />
-                        ))}
+                        <p>знайдено лотів: {totalCount}</p>
+                        <div>
+                            {lots.map((lot) => (
+                                <LotCard key={lot.id} lot={lot} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {totalPages > 1 && (
+                    <div>
+                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                            попередня
+                        </button>
+                        <span> сторінка {currentPage} з {totalPages} </span>
+                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                            наступна
+                        </button>
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };
