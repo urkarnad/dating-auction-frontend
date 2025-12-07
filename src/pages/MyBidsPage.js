@@ -35,9 +35,7 @@ const MyBidsPage = () => {
     if (loading) {
         return (
             <div>
-                <Header />
                 <main>Завантаження...</main>
-                <Footer />
             </div>
         );
     }
@@ -57,14 +55,14 @@ const MyBidsPage = () => {
 
                 <div>
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                        <option value="">Всі ставки</option>
-                        <option value="active">Активні</option>
-                        <option value="overbid">Перебиті</option>
+                        <option value="">всі ставки</option>
+                        <option value="active">активні</option>
+                        <option value="overbid">перебиті</option>
                     </select>
                 </div>
 
                 {bids.length === 0 ? (
-                    <p>Ви ще не зробили жодної ставки</p>
+                    <p>ви ще не зробили жодної ставки</p>
                 ) : (
                     <div>
                         {bids.map((bid) => (
@@ -79,9 +77,9 @@ const MyBidsPage = () => {
                                     <p><strong>{bid.amount} грн</strong></p>
                                     <p>Дата: {formatDate(bid.created_at)}</p>
                                     {bid.is_overbid ? (
-                                        <span style={{ color: 'red' }}>Перебито</span>
+                                        <span style={{ color: 'red' }}>перебито</span>
                                     ) : (
-                                        <span style={{ color: 'green' }}>Активна ставка</span>
+                                        <span style={{ color: 'green' }}>активна ставка</span>
                                     )}
                                 </div>
                                 <hr />

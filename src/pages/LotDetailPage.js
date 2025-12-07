@@ -95,7 +95,6 @@ const LotDetailPage = () => {
 
     return (
         <div>
-            <Header />
             <main>
                 <h1>Лот #{lot.lot_number || lot.id}</h1>
 
@@ -190,7 +189,6 @@ const LotDetailPage = () => {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

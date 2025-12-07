@@ -37,8 +37,3 @@ export const submitComplaint = async (data) => {
     const res = await api.post('/complaints/', data);
     return res.data;
 };
-
-export const getMyLot = async () => {
-    const res = await api.get('/mylot/');
-    return res.data;
-};
