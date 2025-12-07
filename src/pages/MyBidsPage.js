@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyBids } from '../api/bids';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 
 const MyBidsPage = () => {
     const [bids, setBids] = useState([]);
@@ -18,10 +16,11 @@ const MyBidsPage = () => {
         setLoading(true);
         try {
             const data = await getMyBids(statusFilter || null);
+            console.log('отримані ставки:', data);
             setBids(data);
         } catch (err) {
-            setError('Помилка завантаження ставок');
-            console.error(err);
+            setError('помилка завантаження ставок');
+            console.error('помилка:', err);
         } finally {
             setLoading(false);
         }
@@ -35,7 +34,7 @@ const MyBidsPage = () => {
     if (loading) {
         return (
             <div>
-                <main>Завантаження...</main>
+                <main>завантаження...</main>
             </div>
         );
     }
@@ -53,8 +52,13 @@ const MyBidsPage = () => {
             <main>
                 <h1>мої ставки</h1>
 
-                <div>
-                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="status-filter">фільтр: </label>
+                    <select
+                        id="status-filter"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
                         <option value="">всі ставки</option>
                         <option value="active">активні</option>
                         <option value="overbid">перебиті</option>
@@ -66,23 +70,59 @@ const MyBidsPage = () => {
                 ) : (
                     <div>
                         {bids.map((bid) => (
-                            <div key={bid.id}>
+                            <div
+                                key={bid.id}
+                                style={{
+                                    border: '1px solid #ddd',
+                                    padding: '15px',
+                                    marginBottom: '15px',
+                                    borderRadius: '8px',
+                                    backgroundColor: bid.is_overbid ? '#fff5f5' : '#f0fff0'
+                                }}
+                            >
                                 <h3>
                                     <Link to={`/lots/${bid.lot}`}>
-                                        Лот #{bid.lot}
+                                        Лот #{bid.lot_info?.lot_number || bid.lot}
                                     </Link>
                                 </h3>
 
+                                {bid.lot_info && (
+                                    <p>
+                                        <strong>{bid.lot_info.first_name} {bid.lot_info.last_name}</strong>
+                                    </p>
+                                )}
+
                                 <div>
-                                    <p><strong>{bid.amount} грн</strong></p>
-                                    <p>Дата: {formatDate(bid.created_at)}</p>
+                                    <p><strong>ваша ставка:</strong> {bid.amount} грн</p>
+
+                                    {bid.lot_info && (
+                                        <p><strong>поточна ставка:</strong> {bid.lot_info.current_bet} грн</p>
+                                    )}
+
+                                    <p><strong>дата:</strong> {formatDate(bid.created_at)}</p>
+
                                     {bid.is_overbid ? (
-                                        <span style={{ color: 'red' }}>перебито</span>
+                                        <span style={{
+                                            color: 'white',
+                                            backgroundColor: '#dc3545',
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '14px'
+                                        }}>
+                                            перебито
+                                        </span>
                                     ) : (
-                                        <span style={{ color: 'green' }}>активна ставка</span>
+                                        <span style={{
+                                            color: 'white',
+                                            backgroundColor: '#28a745',
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '14px'
+                                        }}>
+                                            активна ставка
+                                        </span>
                                     )}
                                 </div>
-                                <hr />
                             </div>
                         ))}
                     </div>
