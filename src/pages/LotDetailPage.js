@@ -247,6 +247,15 @@ const LotDetailPage = () => {
                     </div>
                 )}
 
+                {lot.facebook_url && (
+                    <p><strong>Facebook:</strong> <a href={lot.facebook_url} target="_blank" rel="noopener noreferrer">Профіль</a></p>
+                )}
+
+                {lot.instagram_url && (
+                    <p><strong>Instagram:</strong> <a href={lot.instagram_url} target="_blank" rel="noopener noreferrer">Профіль</a></p>
+                )}
+
+
                 <div id="comment-form" style={{ marginTop: '30px' }}>
                     <h3>
                         {replyToId

@@ -16,6 +16,8 @@ const MyLotPage = () => {
         gender: '',
         description: '',
         soundcloud_url: '',
+        facebook_url: '',
+        instagram_url: '',
         role: '',
     });
 
@@ -72,6 +74,8 @@ const MyLotPage = () => {
                 gender: genderId || '',
                 description: data.description || '',
                 soundcloud_url: data.soundcloud_url || '',
+                facebook_url: data.facebook_url || '',
+                instagram_url: data.instagram_url || '',
                 role: roleId || '',
             });
 
@@ -143,6 +147,8 @@ const MyLotPage = () => {
             if (!dataToSend.major) delete dataToSend.major;
             if (!dataToSend.role) delete dataToSend.role;
             if (!dataToSend.soundcloud_url) delete dataToSend.soundcloud_url;
+            if (!dataToSend.facebook_url) delete dataToSend.facebook_url;
+            if (!dataToSend.instagram_url) delete dataToSend.instagram_url;
             if (!dataToSend.description) delete dataToSend.description;
 
             if (lot) {
@@ -409,6 +415,14 @@ const MyLotPage = () => {
                                     </div>
                                 )}
 
+                                {lot.facebook_url && (
+                                    <p><strong>Facebook:</strong> <a href={lot.facebook_url} target="_blank" rel="noopener noreferrer">{lot.facebook_url}</a></p>
+                                )}
+
+                                {lot.instagram_url && (
+                                    <p><strong>Instagram:</strong> <a href={lot.instagram_url} target="_blank" rel="noopener noreferrer">{lot.instagram_url}</a></p>
+                                )}
+
                                 <div style={{ marginTop: '20px' }}>
                                     <h3>Завантажити фото</h3>
                                     <input
@@ -590,6 +604,28 @@ const MyLotPage = () => {
                                         type="url"
                                         name="soundcloud_url"
                                         value={formData.soundcloud_url}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label>Facebook URL</label>
+                                    <input
+                                        type="url"
+                                        name="facebook_url"
+                                        placeholder="https://facebook.com/..."
+                                        value={formData.facebook_url}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label>Instagram URL</label>
+                                    <input
+                                        type="url"
+                                        name="instagram_url"
+                                        placeholder="https://instagram.com/..."
+                                        value={formData.instagram_url}
                                         onChange={handleInputChange}
                                     />
                                 </div>
