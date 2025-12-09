@@ -25,12 +25,14 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             try {
                 const userData = await getUserProfile();
+                localStorage.setItem('user_id', userData.id);
                 setUser(userData);
                 setIsAuthenticated(true);
             } catch (error) {
                 console.error('Auth check failed:', error);
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
+                localStorage.removeItem('user_id');
                 setIsAuthenticated(false);
             }
         }
@@ -42,6 +44,7 @@ export const AuthProvider = ({ children }) => {
         if (tokens.refresh) {
             localStorage.setItem('refresh_token', tokens.refresh);
         }
+        localStorage.setItem('user_id', userData.id);
         setUser(userData);
         setIsAuthenticated(true);
     };
@@ -52,6 +55,7 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Logout error:', error);
         }
+        localStorage.removeItem('user_id');
         setUser(null);
         setIsAuthenticated(false);
     };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getMyLot, createLot, partialUpdateLot, uploadLotPhoto } from '../api/lots';
+import { getMyLot, createLot, partialUpdateLot, uploadLotPhoto, addMyLotComment } from '../api/lots';
 import { getFaculties, getMajors, getRoles, getYears, getGenders } from '../api/filters';
 
 const MyLotPage = () => {
@@ -27,9 +27,15 @@ const MyLotPage = () => {
     const [filtersLoading, setFiltersLoading] = useState(true);
 
     const [uploadingPhotos, setUploadingPhotos] = useState(false);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+    // Comment form state
+    const [commentText, setCommentText] = useState('');
+    const [replyToId, setReplyToId] = useState(null);
+    const [replyToName, setReplyToName] = useState(''); // ✅ ДОДАНО: для показу імені
+    const [submittingComment, setSubmittingComment] = useState(false);
 
     const fetchMajors = useCallback(async (facultyId) => {
-        // CRITICAL FIX: Ensure facultyId is a number
         if (!facultyId || isNaN(facultyId)) {
             setMajors([]);
             return;
@@ -48,10 +54,9 @@ const MyLotPage = () => {
         setLoading(true);
         try {
             const data = await getMyLot();
-            console.log('📦 Отримані дані лоту:', data);
+            console.log('Отримані дані лоту:', data);
             setLot(data);
 
-            // CRITICAL FIX: Extract IDs correctly
             const facultyId = typeof data.faculty === 'object' ? data.faculty?.id : data.faculty;
             const majorId = typeof data.major === 'object' ? data.major?.id : data.major;
             const yearId = typeof data.year === 'object' ? data.year?.id : data.year;
@@ -93,8 +98,6 @@ const MyLotPage = () => {
                 getGenders()
             ]);
 
-            console.log('📚 Завантажені фільтри:', { facultiesData, rolesData, yearsData, gendersData });
-
             setFaculties(facultiesData);
             setRoles(rolesData);
             setYears(yearsData);
@@ -114,7 +117,6 @@ const MyLotPage = () => {
 
     useEffect(() => {
         if (formData.faculty && !isNaN(formData.faculty)) {
-            console.log('🔍 Завантаження спеціальностей для факультету:', formData.faculty);
             fetchMajors(formData.faculty);
         } else {
             setMajors([]);
@@ -135,39 +137,28 @@ const MyLotPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Збереження лоту з даними:', formData);
-
         try {
             const dataToSend = { ...formData };
 
-            // Remove empty optional fields
             if (!dataToSend.major) delete dataToSend.major;
             if (!dataToSend.role) delete dataToSend.role;
             if (!dataToSend.soundcloud_url) delete dataToSend.soundcloud_url;
             if (!dataToSend.description) delete dataToSend.description;
 
-            console.log('Відправка даних:', dataToSend);
-
-            let response;
             if (lot) {
-                response = await partialUpdateLot(dataToSend);
+                await partialUpdateLot(dataToSend);
             } else {
-                response = await createLot(dataToSend);
+                await createLot(dataToSend);
             }
-
-            console.log('Відповідь сервера:', response);
 
             await fetchMyLot();
             setIsEditing(false);
             alert('лот успішно збережено!');
         } catch (err) {
             console.error('помилка збереження лоту:', err);
-            console.error('Деталі помилки:', err.response?.data);
-
             const errorMsg = err.response?.data?.detail
                 || JSON.stringify(err.response?.data)
                 || 'помилка збереження. спробуйте ще раз.';
-
             alert(errorMsg);
         }
     };
@@ -199,6 +190,123 @@ const MyLotPage = () => {
         }
     };
 
+    const handlePhotoNav = (direction) => {
+        if (!lot?.photos || lot.photos.length === 0) return;
+
+        if (direction === 'next') {
+            setCurrentPhotoIndex((prev) =>
+                prev === lot.photos.length - 1 ? 0 : prev + 1
+            );
+        } else {
+            setCurrentPhotoIndex((prev) =>
+                prev === 0 ? lot.photos.length - 1 : prev - 1
+            );
+        }
+    };
+
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!commentText.trim()) {
+            alert('Введіть текст коментаря');
+            return;
+        }
+
+        setSubmittingComment(true);
+        try {
+            const data = {
+                text: commentText
+            };
+
+            if (replyToId) {
+                data.parent = replyToId;
+            }
+
+            await addMyLotComment(data);
+
+            setCommentText('');
+            setReplyToId(null);
+            setReplyToName('');
+            await fetchMyLot();
+            alert('Коментар успішно додано!');
+        } catch (err) {
+            console.error('Помилка додавання коментаря:', err);
+            alert(err.response?.data?.detail || 'Помилка. Спробуйте ще раз.');
+        } finally {
+            setSubmittingComment(false);
+        }
+    };
+
+    const handleReply = (comment) => {
+        setReplyToId(comment.id);
+        setReplyToName(comment.user_name || 'Користувач');
+        document.getElementById('comment-form')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const cancelReply = () => {
+        setReplyToId(null);
+        setReplyToName('');
+        setCommentText('');
+    };
+
+    const renderComments = (comments, parentId = null, level = 0) => {
+        const filtered = comments.filter(c => c.parent === parentId);
+
+        if (filtered.length === 0) return null;
+
+        return (
+            <div style={{ marginLeft: level > 0 ? '30px' : '0' }}>
+                {filtered.map((comment) => (
+                    <div
+                        key={comment.id}
+                        style={{
+                            border: '1px solid #ddd',
+                            padding: '10px',
+                            marginBottom: '10px',
+                            borderRadius: '5px',
+                            backgroundColor: level > 0 ? '#f9f9f9' : 'white'
+                        }}
+                    >
+                        <div>
+                            <strong>{comment.user_name || 'Користувач'}</strong>
+                            {comment.bid && (
+                                <span style={{
+                                    marginLeft: '10px',
+                                    color: 'green',
+                                    fontWeight: 'bold'
+                                }}>
+                                    Ставка: {comment.bid} грн
+                                </span>
+                            )}
+                        </div>
+
+                        {comment.text && <p style={{ margin: '10px 0' }}>{comment.text}</p>}
+
+                        <div style={{ fontSize: '12px', color: '#666' }}>
+                            {new Date(comment.created_at).toLocaleString('uk-UA')}
+                            {' • '}
+                            <button
+                                onClick={() => handleReply(comment)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#007bff',
+                                    cursor: 'pointer',
+                                    padding: 0,
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                Відповісти
+                            </button>
+                        </div>
+
+                        {level === 0 && renderComments(comments, comment.id, 1)}
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     const findLabelById = (array, id, labelKey = 'name') => {
         const item = array.find(i => i.id === id);
         return item ? item[labelKey] : id;
@@ -223,6 +331,27 @@ const MyLotPage = () => {
                         {!isEditing ? (
                             <div>
                                 <h2>лот #{lot.lot_number || lot.id}</h2>
+
+                                {/* Photos */}
+                                {lot.photos && lot.photos.length > 0 && (
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <img
+                                            src={lot.photos[currentPhotoIndex]}
+                                            alt={`${lot.first_name} ${lot.last_name}`}
+                                            style={{ maxWidth: '500px', borderRadius: '8px' }}
+                                        />
+                                        {lot.photos.length > 1 && (
+                                            <div style={{ marginTop: '10px' }}>
+                                                <button onClick={() => handlePhotoNav('prev')}>←</button>
+                                                <span style={{ margin: '0 15px' }}>
+                                                    {currentPhotoIndex + 1} / {lot.photos.length}
+                                                </span>
+                                                <button onClick={() => handlePhotoNav('next')}>→</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 <p><strong>Ім'я:</strong> {lot.first_name} {lot.last_name}</p>
 
                                 <p><strong>Факультет:</strong> {
@@ -266,41 +395,105 @@ const MyLotPage = () => {
                                 )}
 
                                 {lot.soundcloud_url && (
-                                    <div>
-                                        <p><strong>SoundCloud:</strong> <a href={lot.soundcloud_url} target="_blank" rel="noopener noreferrer">{lot.soundcloud_url}</a></p>
+                                    <div style={{ marginTop: '20px' }}>
+                                        <h3>Музика</h3>
+                                        <iframe
+                                            title="soundcloud-player"
+                                            width="100%"
+                                            height="166"
+                                            scrolling="no"
+                                            frameBorder="no"
+                                            allow="autoplay"
+                                            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(lot.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
+                                        />
                                     </div>
                                 )}
 
-                                <div>
-                                    <h3>Фотографії</h3>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                        {lot.photos?.length > 0 ? (
-                                            lot.photos.map((photo, index) => (
-                                                <img
-                                                    key={index}
-                                                    src={photo}
-                                                    alt={`Фото ${index + 1}`}
-                                                    style={{ width: '200px', height: '200px', objectFit: 'cover', borderRadius: '8px' }}
-                                                />
-                                            ))
-                                        ) : (
-                                            <p>Фото відсутні</p>
-                                        )}
-                                    </div>
-
-                                    <div style={{ marginTop: '20px' }}>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={handlePhotoUpload}
-                                            disabled={uploadingPhotos}
-                                        />
-                                        {uploadingPhotos && <p>Завантаження...</p>}
-                                    </div>
+                                <div style={{ marginTop: '20px' }}>
+                                    <h3>Завантажити фото</h3>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handlePhotoUpload}
+                                        disabled={uploadingPhotos}
+                                    />
+                                    {uploadingPhotos && <p>Завантаження...</p>}
                                 </div>
 
-                                <button onClick={() => setIsEditing(true)} style={{ marginTop: '20px' }}>Редагувати</button>
+                                {/* Comments */}
+                                {lot.comments && lot.comments.length > 0 && (
+                                    <div style={{ marginTop: '30px' }}>
+                                        <h3>Коментарі та ставки</h3>
+                                        {renderComments(lot.comments)}
+                                    </div>
+                                )}
+
+                                <div id="comment-form" style={{ marginTop: '30px' }}>
+                                    <h3>
+                                        {replyToId
+                                            ? 'Відповісти на коментар'
+                                            : 'Залишити коментар'}
+                                    </h3>
+
+                                    {replyToId && (
+                                        <div style={{
+                                            padding: '10px',
+                                            backgroundColor: '#e7f3ff',
+                                            marginBottom: '10px',
+                                            borderRadius: '5px'
+                                        }}>
+                                            Відповідь на коментар від <strong>{replyToName}</strong>
+                                            <button
+                                                onClick={cancelReply}
+                                                style={{ marginLeft: '10px' }}
+                                            >
+                                                Скасувати
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={handleCommentSubmit}>
+                                        <textarea
+                                            placeholder={replyToId
+                                                ? "Ваша відповідь"
+                                                : "Ваш коментар"}
+                                            value={commentText}
+                                            onChange={(e) => setCommentText(e.target.value)}
+                                            rows="4"
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px',
+                                                borderRadius: '5px',
+                                                border: '1px solid #ccc'
+                                            }}
+                                            required
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={submittingComment}
+                                            style={{
+                                                marginTop: '10px',
+                                                padding: '10px 20px',
+                                                backgroundColor: submittingComment ? '#ccc' : '#007bff',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '5px',
+                                                cursor: submittingComment ? 'not-allowed' : 'pointer'
+                                            }}
+                                        >
+                                            {submittingComment
+                                                ? 'Додавання...'
+                                                : replyToId
+                                                    ? 'Відповісти'
+                                                    : 'Додати коментар'}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <button onClick={() => setIsEditing(true)} style={{ marginTop: '20px' }}>
+                                    Редагувати інформацію
+                                </button>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit}>
@@ -309,7 +502,6 @@ const MyLotPage = () => {
                                     <input
                                         type="text"
                                         name="first_name"
-                                        placeholder="Ім'я"
                                         value={formData.first_name}
                                         onChange={handleInputChange}
                                         required
@@ -321,7 +513,6 @@ const MyLotPage = () => {
                                     <input
                                         type="text"
                                         name="last_name"
-                                        placeholder="Прізвище"
                                         value={formData.last_name}
                                         onChange={handleInputChange}
                                         required
@@ -377,7 +568,6 @@ const MyLotPage = () => {
                                     <label>Опис</label>
                                     <textarea
                                         name="description"
-                                        placeholder="Опис (необов'язково)"
                                         value={formData.description}
                                         onChange={handleInputChange}
                                         rows="5"
@@ -399,7 +589,6 @@ const MyLotPage = () => {
                                     <input
                                         type="url"
                                         name="soundcloud_url"
-                                        placeholder="https://soundcloud.com/..."
                                         value={formData.soundcloud_url}
                                         onChange={handleInputChange}
                                     />
@@ -409,7 +598,7 @@ const MyLotPage = () => {
                                     <button type="submit">Зберегти</button>
                                     <button type="button" onClick={() => {
                                         setIsEditing(false);
-                                        fetchMyLot(); // Відновити дані
+                                        fetchMyLot();
                                     }}>Скасувати</button>
                                 </div>
                             </form>

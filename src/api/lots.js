@@ -30,6 +30,11 @@ export const addCommentOrBid = async (lotId, data) => {
     return response.data;
 };
 
+export const addMyLotComment = async (data) => {
+    const response = await api.post('/mylot/', data);
+    return response.data;
+};
+
 export const uploadLotPhoto = async (file) => {
     const formData = new FormData();
     formData.append('photo', file);

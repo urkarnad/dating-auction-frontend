@@ -42,6 +42,8 @@ const AuthCallbackPage = () => {
                 const userData = await getUserProfile();
                 console.log('профіль завантажено:', userData);
 
+                localStorage.setItem('user_id', userData.id);
+
                 login(
                     {
                         access: accessToken,
