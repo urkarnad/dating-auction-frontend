@@ -55,9 +55,15 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Logout error:', error);
         }
+
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_id');
+
         setUser(null);
         setIsAuthenticated(false);
+
+        window.location.href = '/login';
     };
 
     const updateUser = (userData) => {
