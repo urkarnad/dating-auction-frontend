@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getMyLot, createLot, partialUpdateLot, uploadLotPhoto, addMyLotComment } from '../api/lots';
+import {getMyLot, createLot, partialUpdateLot, uploadLotPhoto, addMyLotComment, deleteLotPhoto} from '../api/lots';
 import { getFaculties, getMajors, getRoles, getYears, getGenders } from '../api/filters';
 
 const MyLotPage = () => {
@@ -31,10 +31,12 @@ const MyLotPage = () => {
     const [uploadingPhotos, setUploadingPhotos] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
+    const [selectedPhotos, setSelectedPhotos] = useState([]);
+
     // Comment form state
     const [commentText, setCommentText] = useState('');
     const [replyToId, setReplyToId] = useState(null);
-    const [replyToName, setReplyToName] = useState(''); // ✅ ДОДАНО: для показу імені
+    const [replyToName, setReplyToName] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
 
     const fetchMajors = useCallback(async (facultyId) => {
@@ -138,6 +140,17 @@ const MyLotPage = () => {
         }));
     };
 
+    const handlePhotoSelect = (e) => {
+        const files = Array.from(e.target.files);
+
+        if (files.length > 5) {
+            alert('Максимум 5 фото');
+            return;
+        }
+
+        setSelectedPhotos(files);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -153,13 +166,30 @@ const MyLotPage = () => {
 
             if (lot) {
                 await partialUpdateLot(dataToSend);
+                await fetchMyLot();
+                setIsEditing(false);
+                alert('лот успішно оновлено!');
             } else {
                 await createLot(dataToSend);
-            }
 
-            await fetchMyLot();
-            setIsEditing(false);
-            alert('лот успішно збережено!');
+                if (selectedPhotos.length > 0) {
+                    setUploadingPhotos(true);
+                    try {
+                        await uploadLotPhoto(selectedPhotos);
+                        console.log('Фото успішно завантажено!');
+                    } catch (photoErr) {
+                        console.error('Помилка завантаження фото:', photoErr);
+                        alert('Лот створено, але виникла помилка завантаження фото. Спробуйте завантажити їх окремо.');
+                    } finally {
+                        setUploadingPhotos(false);
+                        setSelectedPhotos([]);
+                    }
+                }
+
+                await fetchMyLot();
+                setIsEditing(false);
+                alert('лот успішно створено!');
+            }
         } catch (err) {
             console.error('помилка збереження лоту:', err);
             const errorMsg = err.response?.data?.detail
@@ -178,23 +208,50 @@ const MyLotPage = () => {
             return;
         }
 
+        const currentCount = lot.photos?.length || 0;
+        if (currentCount >= 5) {
+            alert('Максимум 5 фото. Видаліть старі фото, щоб завантажити нові.');
+            return;
+        }
+
+        const remainingSlots = 5 - currentCount;
+        if (files.length > remainingSlots) {
+            alert(`Можна завантажити ще ${remainingSlots} фото.`);
+            return;
+        }
+
         setUploadingPhotos(true);
         try {
-            for (const file of files) {
-                await uploadLotPhoto(file);
-            }
-
+            await uploadLotPhoto(files);
             await fetchMyLot();
-            alert('фото успішно завантажено!');
-
+            alert(`Успішно завантажено ${files.length} фото!`);
+            e.target.value = '';
         } catch (err) {
             console.error('помилка завантаження фото:', err);
-            alert('помилка завантаження фото');
-
+            alert(err.response?.data?.detail || 'помилка завантаження фото');
         } finally {
             setUploadingPhotos(false);
         }
     };
+
+    const handlePhotoDelete = async (photoId) => {
+        if (!window.confirm('Видалити це фото?')) return;
+
+        try {
+            await deleteLotPhoto(photoId);
+            await fetchMyLot();
+
+            if (currentPhotoIndex > 0) {
+                setCurrentPhotoIndex(prev => prev - 1);
+            }
+
+            alert('Фото успішно видалено!');
+        } catch (err) {
+            console.error('помилка видалення фото:', err);
+            alert(err.response?.data?.detail || 'помилка видалення фото');
+        }
+    };
+
 
     const handlePhotoNav = (direction) => {
         if (!lot?.photos || lot.photos.length === 0) return;
@@ -338,23 +395,38 @@ const MyLotPage = () => {
                             <div>
                                 <h2>лот #{lot.lot_number || lot.id}</h2>
 
-                                {/* Photos */}
                                 {lot.photos && lot.photos.length > 0 && (
                                     <div style={{ marginBottom: '20px' }}>
                                         <img
-                                            src={lot.photos[currentPhotoIndex]}
+                                            src={lot.photos[currentPhotoIndex].url}
                                             alt={`${lot.first_name} ${lot.last_name}`}
                                             style={{ maxWidth: '500px', borderRadius: '8px' }}
                                         />
-                                        {lot.photos.length > 1 && (
-                                            <div style={{ marginTop: '10px' }}>
-                                                <button onClick={() => handlePhotoNav('prev')}>←</button>
-                                                <span style={{ margin: '0 15px' }}>
-                                                    {currentPhotoIndex + 1} / {lot.photos.length}
-                                                </span>
-                                                <button onClick={() => handlePhotoNav('next')}>→</button>
-                                            </div>
-                                        )}
+                                        <div style={{ marginTop: '10px' }}>
+                                            {lot.photos.length > 1 && (
+                                                <>
+                                                    <button onClick={() => handlePhotoNav('prev')}>←</button>
+                                                    <span style={{ margin: '0 15px' }}>
+                                                        {currentPhotoIndex + 1} / {lot.photos.length}
+                                                    </span>
+                                                    <button onClick={() => handlePhotoNav('next')}>→</button>
+                                                </>
+                                            )}
+                                            <button
+                                                onClick={() => handlePhotoDelete(lot.photos[currentPhotoIndex].id)}
+                                                style={{
+                                                    marginLeft: '20px',
+                                                    backgroundColor: '#dc3545',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '5px 10px',
+                                                    borderRadius: '5px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                видалити фото
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
@@ -425,15 +497,24 @@ const MyLotPage = () => {
 
                                 <div style={{ marginTop: '20px' }}>
                                     <h3>Завантажити фото</h3>
+                                    <p>
+                                        Завантажено: <strong>{lot.photos_count || 0} / 5</strong>
+                                        {lot.can_upload_more === false &&
+                                            <span style={{ color: 'red', marginLeft: '10px' }}>
+                                                (досягнуто ліміт)
+                                            </span>
+                                        }
+                                    </p>
                                     <input
                                         type="file"
                                         accept="image/*"
                                         multiple
                                         onChange={handlePhotoUpload}
-                                        disabled={uploadingPhotos}
+                                        disabled={uploadingPhotos || lot.can_upload_more === false}
                                     />
                                     {uploadingPhotos && <p>Завантаження...</p>}
                                 </div>
+
 
                                 {/* Comments */}
                                 {lot.comments && lot.comments.length > 0 && (
@@ -629,6 +710,29 @@ const MyLotPage = () => {
                                         onChange={handleInputChange}
                                     />
                                 </div>
+
+                                {!lot && (
+                                    <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                                        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+                                            Фото (необов'язково, до 5 шт.)
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={handlePhotoSelect}
+                                            style={{ display: 'block' }}
+                                        />
+                                        {selectedPhotos.length > 0 && (
+                                            <p style={{ marginTop: '10px', color: '#28a745' }}>
+                                                Вибрано фото: {selectedPhotos.length} / 5
+                                            </p>
+                                        )}
+                                        <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                                            Фото будуть завантажені відразу після створення лота
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div style={{ marginTop: '20px' }}>
                                     <button type="submit">Зберегти</button>

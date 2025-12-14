@@ -5,12 +5,32 @@ const LotCard = ({ lot }) => {
 
     return (
         <div className="lot-card">
-            {/* Фото */}
             <div className="lot-photo">
-                {lot.photo ? (
-                    <img src={lot.photo} alt="lot" />
+                {lot.main_photo ? (
+                    <img
+                        src={lot.main_photo}
+                        alt={`${lot.first_name} ${lot.last_name}`}
+                        style={{
+                            width: '100%',
+                            height: '250px',
+                            objectFit: 'cover',
+                            borderRadius: '8px 8px 0 0'
+                        }}
+                    />
                 ) : (
-                    <div className="no-photo">немає фото</div>
+                    <div className="no-photo" style={{
+                        width: '100%',
+                        height: '250px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#f0f0f0',
+                        color: '#999',
+                        fontSize: '14px',
+                        borderRadius: '8px 8px 0 0'
+                    }}>
+                        немає фото
+                    </div>
                 )}
             </div>
 

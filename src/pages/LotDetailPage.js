@@ -145,6 +145,33 @@ const LotDetailPage = () => {
                             backgroundColor: level > 0 ? '#f9f9f9' : 'white'
                         }}
                     >
+                        {comment.user_avatar ? (
+                            <img
+                                src={comment.user_avatar}
+                                alt={comment.user_name}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '2px solid #007bff'
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#e0e0e0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '20px'
+                            }}>
+                                👤
+                            </div>
+                        )}
+
                         <div>
                             <strong>{comment.user_name || 'Користувач'}</strong>
                             {comment.bid && (
@@ -197,7 +224,9 @@ const LotDetailPage = () => {
                 {lot.photos && lot.photos.length > 0 ? (
                     <div>
                         <img
-                            src={lot.photos[currentPhotoIndex]}
+                            src={typeof lot.photos[currentPhotoIndex] === 'string'
+                                ? lot.photos[currentPhotoIndex]
+                                : lot.photos[currentPhotoIndex]?.url}
                             alt={`${lot.first_name} ${lot.last_name}`}
                             style={{ maxWidth: '500px', borderRadius: '8px' }}
                         />
@@ -212,7 +241,19 @@ const LotDetailPage = () => {
                         )}
                     </div>
                 ) : (
-                    <div>Фото відсутнє</div>
+                    <div style={{
+                        width: '500px',
+                        height: '500px',
+                        backgroundColor: '#f0f0f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '8px',
+                        color: '#999',
+                        fontSize: '18px'
+                    }}>
+                        Фото відсутнє
+                    </div>
                 )}
 
                 <div style={{ marginTop: '20px' }}>
