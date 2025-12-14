@@ -26,7 +26,7 @@ export const logoutUser = async () => {
 };
 
 export const updateProfile = async (data) => {
-    const res = await api.put('/users/me/', data);
+    const res = await api.patch('/profile/', data);
     return res.data;
 };
 
