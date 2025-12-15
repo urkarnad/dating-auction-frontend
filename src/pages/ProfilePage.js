@@ -439,16 +439,48 @@ const ProfilePage = () => {
                         </div>
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Discord ID</label>
-                            <input
-                                type="text"
-                                name="discord_id"
-                                placeholder="discord ID"
-                                value={formData.discord_id}
-                                onChange={handleInputChange}
-                                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Discord ID
+                            </label>
+                            <p style={{
+                                fontSize: '13px',
+                                color: '#666',
+                                marginBottom: '10px',
+                                backgroundColor: '#e7f3ff',
+                                padding: '10px',
+                                borderRadius: '5px'
+                            }}>
+                                Щоб отримувати сповіщення про перебиття ставок, приєднайтесь до нашого Discord сервера
+                                та отримайте свій Discord ID від бота.
+                            </p>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                            <a
+                                href="https://discord.gg/EYxkh9jVHk"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                padding: '10px 20px',
+                                backgroundColor: '#5865F2',
+                                color: 'white',
+                                textDecoration: 'none',
+                                borderRadius: '5px',
+                                display: 'inline-block',
+                                fontWeight: 'bold',
+                                textAlign: 'center'
+                            }}
+                                >
+                                Приєднатись до Discord
+                            </a>
                         </div>
+                        <input
+                            type="text"
+                            name="discord_id"
+                            placeholder="Наприклад: 123456789012345678"
+                            value={formData.discord_id}
+                            onChange={handleInputChange}
+                            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                        />
+                    </div>
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>SoundCloud URL</label>
