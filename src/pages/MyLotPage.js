@@ -330,6 +330,33 @@ const MyLotPage = () => {
                             backgroundColor: level > 0 ? '#f9f9f9' : 'white'
                         }}
                     >
+                        {comment.user_avatar ? (
+                            <img
+                                src={comment.user_avatar}
+                                alt={comment.user_name}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '2px solid #007bff'
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#e0e0e0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '20px'
+                            }}>
+                                👤
+                            </div>
+                        )}
+
                         <div>
                             <strong>{comment.user_name || 'Користувач'}</strong>
                             {comment.bid && (

@@ -8,7 +8,6 @@ const ComplaintsPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Отримуємо lotId з state (якщо переходимо зі сторінки лоту)
     const { lotId } = location.state || {};
 
     const [text, setText] = useState('');

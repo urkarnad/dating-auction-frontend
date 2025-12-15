@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import LotDetailPage from './pages/LotDetailPage';
 import MyLotPage from './pages/MyLotPage';
@@ -47,6 +48,15 @@ function App() {
                         element={
                             <PublicRoute>
                                 <LoginPage />
+                            </PublicRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute>
+                                <RegisterPage />
                             </PublicRoute>
                         }
                     />
