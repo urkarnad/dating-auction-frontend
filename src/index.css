@@ -125,7 +125,7 @@ textarea,
 select {
     font-family: var(--font-main);
     padding: 0.75rem 1rem;
-    border: 2px solid var(--color-light-gray);
+    border: 1px solid var(--color-light-gray);
     border-radius: var(--border-radius-sm);
     font-size: 1rem;
     width: 100%;

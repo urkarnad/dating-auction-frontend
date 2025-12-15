@@ -1,0 +1,408 @@
+.lotdetail-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.lotdetail-header {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lot-number {
+    background-color: var(--color-green);
+    color: var(--color-dark);
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-radius: var(--border-radius-sm);
+}
+
+.complaint-btn {
+    background-color: var(--color-pink);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.complaint-btn:hover {
+    background-color: #E0007D;
+    transform: translateY(-2px);
+}
+
+.lotdetail-content {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.lotdetail-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+}
+
+.lotdetail-photo-section {
+    position: relative;
+}
+
+.lotdetail-photo-container {
+    width: 100%;
+    height: 500px;
+    background-color: #D3D3D3;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.lotdetail-photo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lotdetail-no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+.photo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.photo-nav:hover {
+    background-color: var(--color-pink);
+}
+
+.photo-nav.prev {
+    left: 10px;
+}
+
+.photo-nav.next {
+    right: 10px;
+}
+
+.photo-counter {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.lotdetail-info-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.soundcloud-player {
+    background-color: var(--color-green);
+    padding: 2rem;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.lotdetail-details {
+    flex: 1;
+}
+
+.lotdetail-details h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: 1.5rem;
+}
+
+.lotdetail-description {
+    margin-top: 1.5rem;
+    line-height: 1.6;
+    color: var(--color-dark);
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.social-link {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-dark);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.social-link:hover {
+    transform: scale(1.1);
+    background-color: var(--color-pink);
+}
+
+.social-link svg {
+    width: 30px;
+    height: 30px;
+    fill: white;
+}
+
+.comments-section {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.comments-title {
+    background-color: var(--color-green);
+    color: var(--color-dark);
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1.5rem;
+}
+
+.comment-item {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius-sm);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.comment-item:hover {
+    box-shadow: var(--shadow);
+}
+
+.comment-item.reply {
+    margin-left: 50px;
+    background-color: #f9f9f9;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comment-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-pink);
+}
+
+.comment-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.comment-user-info {
+    flex: 1;
+}
+
+.comment-username {
+    font-weight: 700;
+    color: var(--color-dark);
+    font-size: 1.1rem;
+}
+
+.comment-bid {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-green);
+    color: var(--color-dark);
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-left: 1rem;
+}
+
+.comment-text {
+    margin: 1rem 0;
+    line-height: 1.6;
+    color: var(--color-dark);
+}
+
+.comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+}
+
+.reply-btn {
+    background: none;
+    border: none;
+    color: var(--color-blue);
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0;
+    font-family: var(--font-main);
+}
+
+.reply-btn:hover {
+    color: var(--color-pink);
+}
+
+.bid-form-section {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+}
+
+.form-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--color-dark);
+}
+
+.reply-notice {
+    padding: 1rem;
+    background-color: #e7f3ff;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-blue);
+}
+
+.reply-notice strong {
+    color: var(--color-blue);
+}
+
+.cancel-reply-btn {
+    margin-left: 1rem;
+    background-color: var(--color-pink);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.cancel-reply-btn:hover {
+    background-color: #E0007D;
+}
+
+.bid-input,
+.comment-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-family: var(--font-main);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.bid-input:focus,
+.comment-textarea:focus {
+    outline: none;
+    border-color: var(--color-blue);
+    background-color: #f0f8ff;
+}
+
+.submit-btn {
+    background-color: var(--color-green);
+    color: var(--color-dark);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background-color: var(--color-pink);
+    color: white;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 968px) {
+    .lotdetail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lotdetail-photo-container {
+        height: 400px;
+    }
+
+    .lotdetail-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .comment-item.reply {
+        margin-left: 20px;
+    }
+}

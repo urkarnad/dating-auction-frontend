@@ -180,12 +180,11 @@ const ProfilePage = () => {
                     backgroundColor: '#f8f9fa',
                     borderRadius: '10px'
                 }}>
-                    <h3>Аватарка</h3>
                     {user?.profile_pic ? (
                         <div>
                             <img
                                 src={user.profile_pic}
-                                alt="Аватарка"
+                                alt="аватарка"
                                 style={{
                                     width: '150px',
                                     height: '150px',
@@ -223,7 +222,6 @@ const ProfilePage = () => {
                             justifyContent: 'center',
                             fontSize: '48px'
                         }}>
-                            👤
                         </div>
                     )}
 

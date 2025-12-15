@@ -92,7 +92,7 @@
 .search-form {
     display: flex;
     gap: 1rem;
-    max-width: 800px;
+    width: 100%;
 }
 
 .search-input {

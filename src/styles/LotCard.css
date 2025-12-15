@@ -1,0 +1,127 @@
+.lot-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-dark);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.lot-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.lot-photo {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+.lot-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #D3D3D3;
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.lot-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.lot-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin-bottom: 0.75rem;
+    text-transform: capitalize;
+}
+
+.lot-description {
+    font-size: 0.95rem;
+    color: var(--color-dark);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    flex: 1;
+    min-height: 60px;
+}
+
+.lot-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    gap: 1rem;
+}
+
+.lot-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    white-space: nowrap;
+}
+
+.bid-btn {
+    background-color: var(--color-green);
+    color: var(--color-dark);
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.bid-btn:hover {
+    background-color: var(--color-pink);
+    color: var(--color-white);
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .lot-photo {
+        height: 250px;
+    }
+
+    .lot-content {
+        padding: 1rem;
+    }
+
+    .lot-name {
+        font-size: 1.1rem;
+    }
+
+    .lot-description {
+        font-size: 0.9rem;
+        min-height: 50px;
+    }
+
+    .lot-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .bid-btn {
+        width: 100%;
+    }
+}

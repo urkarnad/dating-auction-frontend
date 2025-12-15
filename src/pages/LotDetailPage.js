@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getLotById, addCommentOrBid } from '../api/lots';
+import '../styles/LotDetailPage.css';
 
 const LotDetailPage = () => {
     const { id } = useParams();
@@ -128,282 +129,181 @@ const LotDetailPage = () => {
     };
 
     const handleComplaint = () => {
-        navigate(`/complaints/${id}`);
+        navigate('/complaint', { state: { lotId: id } });
     };
 
-    const renderComments = (comments, parentId = null, level = 0) => {
+    const renderCommentsStyled = (comments, parentId = null) => {
         const filtered = comments.filter(c => c.parent === parentId);
-
         if (filtered.length === 0) return null;
 
-        return (
-            <div style={{ marginLeft: level > 0 ? '30px' : '0' }}>
-                {filtered.map((comment) => (
-                    <div
-                        key={comment.id}
-                        style={{
-                            border: '1px solid #ddd',
-                            padding: '10px',
-                            marginBottom: '10px',
-                            borderRadius: '5px',
-                            backgroundColor: level > 0 ? '#f9f9f9' : 'white'
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                            {comment.user_avatar ? (
-                                <img
-                                    src={comment.user_avatar}
-                                    alt={comment.user_name}
-                                    style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        objectFit: 'cover',
-                                        border: '2px solid #007bff',
-                                        marginRight: '10px'
-                                    }}
-                                />
-                            ) : (
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#e0e0e0',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '20px',
-                                    marginRight: '10px'
-                                }}>
-                                    👤
-                                </div>
+        return filtered.map((comment) => (
+            <div key={comment.id}>
+                <div className={`comment-item ${parentId ? 'reply' : ''}`}>
+                    <div className="comment-header">
+                        {comment.user_avatar ? (
+                            <img src={comment.user_avatar} alt={comment.user_name} className="comment-avatar" />
+                        ) : (
+                            <div className="comment-avatar-placeholder">👤</div>
+                        )}
+                        <div className="comment-user-info">
+                            <span className="comment-username">{comment.user_name || 'Користувач'}</span>
+                            {comment.bid && (
+                                <span className="comment-bid">Нова ставка: {comment.bid} грн</span>
                             )}
-
-                            <div>
-                                <strong>{comment.user_name || 'Користувач'}</strong>
-                                {comment.bid && (
-                                    <span style={{
-                                        marginLeft: '10px',
-                                        color: 'green',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        Ставка: {comment.bid} грн
-                                    </span>
-                                )}
-                            </div>
                         </div>
-
-                        {comment.text && <p style={{ margin: '10px 0' }}>{comment.text}</p>}
-
-                        <div style={{ fontSize: '12px', color: '#666' }}>
-                            {new Date(comment.created_at).toLocaleString('uk-UA')}
-                            {' • '}
-                            <button
-                                onClick={() => handleReply(comment)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#007bff',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                    textDecoration: 'underline'
-                                }}
-                            >
-                                Відповісти
-                            </button>
-                        </div>
-
-                        {level === 0 && renderComments(comments, comment.id, 1)}
                     </div>
-                ))}
+                    {comment.text && <p className="comment-text">{comment.text}</p>}
+                    <div className="comment-footer">
+                        <span className="comment-date">
+                            {new Date(comment.created_at).toLocaleString('uk-UA')}
+                        </span>
+                        <button className="reply-btn" onClick={() => handleReply(comment)}>
+                            відповісти
+                        </button>
+                    </div>
+                </div>
+                {renderCommentsStyled(comments, comment.id)}
             </div>
-        );
+        ));
     };
 
-    if (loading) return <div><main>Завантаження...</main></div>;
-    if (error) return <div><main>{error}</main></div>;
-    if (!lot) return <div><main>Лот не знайдено</main></div>;
+    if (loading) return <div className="loading"><main>Завантаження...</main></div>;
+    if (error) return <div className="error"><main>{error}</main></div>;
+    if (!lot) return <div className="error"><main>Лот не знайдено</main></div>;
 
     return (
-        <div>
-            <main>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1>Лот #{lot.lot_number || lot.id}</h1>
-                    <button
-                        onClick={handleComplaint}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Поскаржитись
-                    </button>
+        <div className="lotdetail-page">
+            <div className="lotdetail-header">
+                <div className="lotdetail-title">
+                <span className="lot-number">ЛОТ #{lot.lot_number || lot.id}</span>
+                <span style={{ marginLeft: '1rem', fontSize: '1.2rem' }}>
+                    - {lot.first_name} {lot.last_name}
+                </span>
                 </div>
+                <button className="complaint-btn" onClick={handleComplaint}>
+                    Поскаржитись
+                </button>
+            </div>
 
-                {lot.photos && lot.photos.length > 0 ? (
-                    <div>
-                        <img
-                            src={typeof lot.photos[currentPhotoIndex] === 'string'
-                                ? lot.photos[currentPhotoIndex]
-                                : lot.photos[currentPhotoIndex]?.url}
-                            alt={`${lot.first_name} ${lot.last_name}`}
-                            style={{ maxWidth: '500px', borderRadius: '8px' }}
-                        />
-                        {lot.photos.length > 1 && (
-                            <div style={{ marginTop: '10px' }}>
-                                <button onClick={() => handlePhotoNav('prev')}>←</button>
-                                <span style={{ margin: '0 15px' }}>
-                                    {currentPhotoIndex + 1} / {lot.photos.length}
-                                </span>
-                                <button onClick={() => handlePhotoNav('next')}>→</button>
+            <div className="lotdetail-content">
+                <div className="lotdetail-grid">
+                    <div className="lotdetail-photo-section">
+                        <div className="lotdetail-photo-container">
+                            {lot.photos && lot.photos.length > 0 ? (
+                                <>
+                                    <img
+                                        src={typeof lot.photos[currentPhotoIndex] === 'string'
+                                            ? lot.photos[currentPhotoIndex]
+                                            : lot.photos[currentPhotoIndex]?.url}
+                                        alt={`${lot.first_name} ${lot.last_name}`}
+                                    />
+                                    {lot.photos.length > 1 && (
+                                        <>
+                                            <button className="photo-nav prev" onClick={() => handlePhotoNav('prev')}>‹</button>
+                                            <button className="photo-nav next" onClick={() => handlePhotoNav('next')}>›</button>
+                                            <div className="photo-counter">
+                                                {currentPhotoIndex + 1} / {lot.photos.length}
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="lotdetail-no-photo">Фото відсутнє</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="lotdetail-info-section">
+                        {lot.soundcloud_url && (
+                            <div className="soundcloud-player">
+                                <iframe
+                                    title="soundcloud-player"
+                                    width="100%"
+                                    height="166"
+                                    scrolling="no"
+                                    frameBorder="no"
+                                    allow="autoplay"
+                                    src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(lot.soundcloud_url)}&color=%23A0EB32&auto_play=false`}
+                                />
                             </div>
                         )}
-                    </div>
-                ) : (
-                    <div style={{
-                        width: '500px',
-                        height: '500px',
-                        backgroundColor: '#f0f0f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '8px',
-                        color: '#999',
-                        fontSize: '18px'
-                    }}>
-                        Фото відсутнє
-                    </div>
-                )}
 
-                <div style={{ marginTop: '20px' }}>
-                    <h2>{lot.first_name} {lot.last_name}</h2>
-                    <p><strong>Факультет:</strong> {lot.faculty}</p>
-                    {lot.major && <p><strong>Спеціальність:</strong> {lot.major}</p>}
-                    <p><strong>Курс:</strong> {lot.year}</p>
-                    <p><strong>Стать:</strong> {lot.gender}</p>
-                    <p><strong>Поточна ставка:</strong> {lot.last_bet || 0} грн</p>
-                    {lot.role && <p><strong>Роль:</strong> {lot.role}</p>}
-                </div>
+                        <div className="lotdetail-details">
+                            <h2>
+                                {lot.faculty && `Студент - ${lot.faculty} - `}
+                                {lot.major && `${lot.major} - `}
+                                {lot.last_bet || 0} грн.
+                            </h2>
+                            {lot.description && <p className="lotdetail-description">{lot.description}</p>}
 
-                {lot.description && (
-                    <div style={{ marginTop: '20px' }}>
-                        <h3>Опис</h3>
-                        <p>{lot.description}</p>
-                    </div>
-                )}
-
-                {lot.soundcloud_url && (
-                    <div style={{ marginTop: '20px' }}>
-                        <h3>Музика</h3>
-                        <iframe
-                            title="soundcloud-player"
-                            width="100%"
-                            height="166"
-                            scrolling="no"
-                            frameBorder="no"
-                            allow="autoplay"
-                            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(lot.soundcloud_url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
-                        />
-                    </div>
-                )}
-
-                {lot.facebook_url && (
-                    <p><strong>Facebook:</strong> <a href={lot.facebook_url} target="_blank" rel="noopener noreferrer">Профіль</a></p>
-                )}
-
-                {lot.instagram_url && (
-                    <p><strong>Instagram:</strong> <a href={lot.instagram_url} target="_blank" rel="noopener noreferrer">Профіль</a></p>
-                )}
-
-
-                <div id="comment-form" style={{ marginTop: '30px' }}>
-                    <h3>
-                        {replyToId
-                            ? 'Відповісти на коментар'
-                            : 'Залишити коментар або зробити ставку'}
-                    </h3>
-
-                    {replyToId && (
-                        <div style={{
-                            padding: '10px',
-                            backgroundColor: '#e7f3ff',
-                            marginBottom: '10px',
-                            borderRadius: '5px'
-                        }}>
-                            Відповідь на коментар від <strong>{replyToName}</strong>
-                            <button
-                                onClick={cancelReply}
-                                style={{ marginLeft: '10px' }}
-                            >
-                                Скасувати
-                            </button>
+                            {(lot.instagram_url || lot.facebook_url) && (
+                                <div className="social-links">
+                                    {lot.instagram_url && (
+                                        <a href={lot.instagram_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                            </svg>
+                                        </a>
+                                    )}
+                                    {lot.facebook_url && (
+                                        <a href={lot.facebook_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                            </svg>
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    <form onSubmit={handleSubmit}>
-                        {!replyToId && (
-                            <input
-                                type="number"
-                                placeholder="Ставка (необов'язково)"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                min="0"
-                                max="10000"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    marginBottom: '10px',
-                                    borderRadius: '5px',
-                                    border: '1px solid #ccc'
-                                }}
-                            />
-                        )}
-                        <textarea
-                            placeholder={replyToId
-                                ? "Ваша відповідь"
-                                : "Ваш коментар (необов'язково якщо є ставка)"}
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            rows="4"
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                borderRadius: '5px',
-                                border: '1px solid #ccc'
-                            }}
-                        />
-                        <button
-                            type="submit"
-                            style={{
-                                marginTop: '10px',
-                                padding: '10px 20px',
-                                backgroundColor: '#007bff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            {replyToId
-                                ? 'Відповісти'
-                                : amount
-                                    ? 'Зробити ставку'
-                                    : 'Додати коментар'}
-                        </button>
-                    </form>
+                    </div>
                 </div>
+            </div>
 
-                {lot.comments && lot.comments.length > 0 && (
-                    <div style={{ marginTop: '30px' }}>
-                        <h3>Коментарі та ставки</h3>
-                        {renderComments(lot.comments)}
+            {lot.comments && lot.comments.length > 0 && (
+                <div className="comments-section">
+                    <span className="comments-title">СТАВКИ</span>
+                    {renderCommentsStyled(lot.comments)}
+                </div>
+            )}
+
+            <div className="bid-form-section" id="comment-form">
+                <h3 className="form-title">
+                    {replyToId ? 'Відповісти на коментар' : 'Залишити коментар або зробити ставку'}
+                </h3>
+
+                {replyToId && (
+                    <div className="reply-notice">
+                        Відповідь на коментар від <strong>{replyToName}</strong>
+                        <button onClick={cancelReply} className="cancel-reply-btn">
+                            Скасувати
+                        </button>
                     </div>
                 )}
-            </main>
+
+                <form onSubmit={handleSubmit}>
+                    {!replyToId && (
+                        <input
+                            type="number"
+                            placeholder="Ставка (необов'язково)"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            min="0"
+                            max="10000"
+                            className="bid-input"
+                        />
+                    )}
+                    <textarea
+                        placeholder={replyToId ? "Ваша відповідь" : "Ваш коментар (необов'язково якщо є ставка)"}
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        rows="4"
+                        className="comment-textarea"
+                    />
+                    <button type="submit" className="submit-btn">
+                        {replyToId ? 'Відповісти' : amount ? 'Зробити ставку' : 'Додати коментар'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

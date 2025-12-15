@@ -18,7 +18,11 @@ const Header = () => {
         <header className="header">
             <div className="header-container">
                 <Link to="/" className="logo">
-                    <span className="logo-icon">✚</span>
+                    <img
+                        src="/heart.png"
+                        alt="Logo"
+                        className="logo-icon"
+                    />
                     <span className="logo-text">АУКЦІОН ПОБАЧЕНЬ</span>
                 </Link>
 
