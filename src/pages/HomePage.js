@@ -185,7 +185,7 @@ const HomePage = () => {
                         <input
                             type="text"
                             className="search-input"
-                            placeholder="введіть ім'я та прізвище..."
+                            placeholder="введіть прізвище..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />

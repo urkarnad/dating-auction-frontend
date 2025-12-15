@@ -127,6 +127,10 @@ const LotDetailPage = () => {
         setReplyToName('');
     };
 
+    const handleComplaint = () => {
+        navigate(`/complaints/${id}`);
+    };
+
     const renderComments = (comments, parentId = null, level = 0) => {
         const filtered = comments.filter(c => c.parent === parentId);
 
@@ -145,44 +149,48 @@ const LotDetailPage = () => {
                             backgroundColor: level > 0 ? '#f9f9f9' : 'white'
                         }}
                     >
-                        {comment.user_avatar ? (
-                            <img
-                                src={comment.user_avatar}
-                                alt={comment.user_name}
-                                style={{
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            {comment.user_avatar ? (
+                                <img
+                                    src={comment.user_avatar}
+                                    alt={comment.user_name}
+                                    style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        border: '2px solid #007bff',
+                                        marginRight: '10px'
+                                    }}
+                                />
+                            ) : (
+                                <div style={{
                                     width: '40px',
                                     height: '40px',
                                     borderRadius: '50%',
-                                    objectFit: 'cover',
-                                    border: '2px solid #007bff'
-                                }}
-                            />
-                        ) : (
-                            <div style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '50%',
-                                backgroundColor: '#e0e0e0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '20px'
-                            }}>
-                                👤
-                            </div>
-                        )}
-
-                        <div>
-                            <strong>{comment.user_name || 'Користувач'}</strong>
-                            {comment.bid && (
-                                <span style={{
-                                    marginLeft: '10px',
-                                    color: 'green',
-                                    fontWeight: 'bold'
+                                    backgroundColor: '#e0e0e0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '20px',
+                                    marginRight: '10px'
                                 }}>
-                                    Ставка: {comment.bid} грн
-                                </span>
+                                    👤
+                                </div>
                             )}
+
+                            <div>
+                                <strong>{comment.user_name || 'Користувач'}</strong>
+                                {comment.bid && (
+                                    <span style={{
+                                        marginLeft: '10px',
+                                        color: 'green',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        Ставка: {comment.bid} грн
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         {comment.text && <p style={{ margin: '10px 0' }}>{comment.text}</p>}
@@ -219,7 +227,22 @@ const LotDetailPage = () => {
     return (
         <div>
             <main>
-                <h1>Лот #{lot.lot_number || lot.id}</h1>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h1>Лот #{lot.lot_number || lot.id}</h1>
+                    <button
+                        onClick={handleComplaint}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Поскаржитись
+                    </button>
+                </div>
 
                 {lot.photos && lot.photos.length > 0 ? (
                     <div>

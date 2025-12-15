@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 
 const ContactsPage = () => {
     const navigate = useNavigate();
@@ -28,7 +26,7 @@ const ContactsPage = () => {
         setLoading(true);
 
         try {
-            await api.post('/feedback/', formData);
+            await api.post('/contacts/', formData);
             setSuccess(true);
             setFormData({
                 name: '',
@@ -107,8 +105,8 @@ const ContactsPage = () => {
 
                 <section style={{ marginTop: '40px' }}>
                     <h2>Контактна інформація</h2>
-                    <p>Email: support@datingauction.com</p>
-                    <p>Telegram: @dating_auction_support</p>
+                    <p>Email: fido@datingauction.com</p>
+
                 </section>
             </main>
         </div>
